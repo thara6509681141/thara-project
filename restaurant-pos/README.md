@@ -245,9 +245,9 @@ This project is licensed under the MIT License. See the LICENSE file for more de
 - **Thara Sritharadol** – Backend Developer, Architect
 
 ## Screenshots
-![Screenshot](assets/images/restaurant-screenshot/Screenshot_1.png)
-![Screenshot](assets/images/restaurant-screenshot/Screenshot_2.png)
-![Screenshot](assets/images/restaurant-screenshot/Screenshot_3.png)
-![Screenshot](assets/images/restaurant-screenshot/Screenshot_4.png)
-![Screenshot](assets/images/restaurant-screenshot/Screenshot_5.png)
+![Screenshot](assets/images/restaurant-pos-screenshot/Screenshot_1.png)
+![Screenshot](assets/images/restaurant-pos-screenshot/Screenshot_2.png)
+![Screenshot](assets/images/restaurant-pos-screenshot/Screenshot_3.png)
+![Screenshot](assets/images/restaurant-pos-screenshot/Screenshot_4.png)
+![Screenshot](assets/images/restaurant-pos-screenshot/Screenshot_5.png)
 

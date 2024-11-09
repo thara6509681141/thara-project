@@ -1,0 +1,91 @@
+html,
+body {
+    height: 100%;
+    margin: 0;
+}
+
+#c {
+	position: absolute;
+	overflow: hidden;
+	width: 100%;
+	height: 100%;
+}
+
+body {
+    /* Gradient background color */
+    background: linear-gradient(to bottom, #031f2a, #021623);
+    /* Change colors as needed */
+}
+
+.message {
+	font-weight: bold;
+	position: absolute;
+	left: 0;
+	width: 100%;
+	text-align: center;
+	text-transform: uppercase;
+	/*pointer-events: none;*/
+}
+
+.message--replay {
+	font-size: 1.25vw;
+	bottom: 40vh;
+	display: none;
+	text-indent: 0.5em;
+	letter-spacing: 0.5em;
+	color: #d1b790;
+}
+
+.message--instructions {
+	font-family: 'Playfair Display';
+	font-size: 1.5em;
+	bottom: 8vh;
+	letter-spacing: 0.2em;
+	color: #b768c3;
+}
+
+.message--instructions span {
+	display: block;
+	color: #d6483b;
+	white-space: nowrap;
+}
+
+.message--food {
+    font-family: 'Playfair Display';
+	font-size: 1.5em;
+	bottom: 1vh;
+	letter-spacing: 0.2em;
+	color: #d6483b;
+}
+.message--foodValue {
+    font-family: 'Playfair Display';
+	font-size: 1.5em;
+	bottom: 4vh;
+	letter-spacing: 0.2em;
+	color: #b768c3;
+}
+.message--youWin {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 4em;
+	color: #ffffff;
+	background-color: #89b9d7;
+	padding: 20px;
+	border-radius: 10px;
+	z-index: 9999;
+  }
+
+  .message--youLose {
+	position: fixed;
+	top: 50%;
+	left: 50%;
+	transform: translate(-50%, -50%);
+	font-size: 4em;
+	color: #ffffff;
+	background-color: #89b9d7;
+	padding: 20px;
+	border-radius: 10px;
+	z-index: 9999;
+  }

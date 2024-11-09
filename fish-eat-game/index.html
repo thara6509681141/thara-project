@@ -1,0 +1,567 @@
+<!-- สมาชิก -->
+<!-- ทีฆกานต์ จานเขื่อง 6509611734 -->
+<!-- ธมกร สมานสวน 6509611759 -->
+<!-- ลีนา หมาดหมาน 6509660046 -->
+<!-- ธารา ศรีธราดล 6509681141 -->
+<!DOCTYPE html>
+<html>
+
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+  <title>แม่นู๋โมย่า</title>
+  <link rel="stylesheet" type="text/css" href="css/style.css" />
+
+</head>
+
+<body>
+  <canvas id="c"></canvas>
+  <div class="message message--instructions" id="instructions">Grab 30 foods to win<span>avoid the other animal</span>
+  </div>
+  <!-- ----- ข้อกำหนดบังคับเลือก --- มีข้อความแสดงสถานะ -->
+  <div class="message message--foodValue">Eaten</div>
+  <div class="message message--food" id="food">000</div>
+
+
+</body>
+
+
+<script type="module">
+
+
+  /////////////////////////////---> ข้อกำหนดบังคับ ---> ใช้ ThreeJS ในการทำ /////////////////////
+
+
+  import * as THREE from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/build/three.module.js'; // import threeJs
+  import { GLTFLoader } from 'https://threejsfundamentals.org/threejs/resources/threejs/r132/examples/jsm/loaders/GLTFLoader.js'; // import GLTFLoader
+  import { GUI } from 'https://threejsfundamentals.org/3rdparty/dat.gui.module.js'; //import gui
+
+  /////////////////////////// ---> ข้อกำหนดบังคับเลือก ---> ดนตรีประกอบ ////////////
+
+
+  var backgroundAdio = new Audio('Cruising in the Balmy Breeze.mp3'); //สร้างตัวแปร backgroundAdio ไว้เก็บเพลงพื้นหลัง
+  var isPlaying = false;
+  backgroundAdio.volume = 0.5; //
+
+  var eatingSound = new Audio('coin.wav'); //สร้างตัวแปร eatingSound ไว้เก็บเสียงกินอาหาร
+
+  function playMusic() { //ฟังชั่นเล่นเพลงพื้นหลัง
+    backgroundAdio.play();
+    isPlaying = true;
+  }
+
+  function stopMusic() { //ฟังชั่นหยุดเพลงพื้นหลัง
+    backgroundAdio.pause();
+    backgroundAdio.currentTime = 0;
+    isPlaying = false;
+  }
+
+  function initGUI() { //ฟังชั่น gui
+    const gui = new GUI();
+
+    gui.add({ play: playMusic }, 'play').name('Play Music'); //ตัวเลือกเล่นเพลง
+
+    gui.add({ stop: stopMusic }, 'stop').name('Stop Music'); //ตัวเลือกหยุดเพลง
+  }
+
+
+  ////////////////////////// ---> ข้อกำหนดบังคับ---> interaction UI /////////////////////
+
+
+  initGUI(); //เรียกฟังชั่น gui
+
+  let eatenFoodCount = 0; //สร้างตัวแปรไว้เก็บอาหารที่กินไปแล้ว เริ่มต้นที่ 0
+
+  function main() {
+    let HEIGHT = window.innerHeight; //HEIGHT = ตวามสูงจอ
+    let WIDTH = window.innerWidth; //WIDTH = ความกว้างจอ
+    const canvas = document.querySelector('#c'); //เลือก element ที่มี id เป็น 'c' ใน HTML
+    const renderer = new THREE.WebGLRenderer({ canvas }); //สร้าง wenglrenderer
+    //renderer.shadowMap.enabled = true;
+
+
+    const fov = 60;
+    const aspect = 2; //อัตราส่วนความกว้างและความสูงของ viewport 
+    const near = 1; //ระยะใกล้สุด
+    const far = 10000; //ระยะไกลสุด
+    const camera = new THREE.PerspectiveCamera(fov, aspect, near, far); //สร้างกล้องแบบ perspective
+    camera.position.set(0, 0, 20); //ตำแหน่งกล้อง
+
+    const scene = new THREE.Scene(); //สร้าง scene
+    scene.fog = new THREE.Fog(0x65b2d6, 10, 700); //สร้างหมอกสีฟ้า
+
+    {
+      const Color = 0xB1E1FF;  //แสงสีฟ้าอ่าน
+      const backColour = 0xb1c8cc;
+      const intensity = 1; //ความเข้มแสง
+      const light = new THREE.HemisphereLight(Color, backColour, intensity); //สร้างแสงแบบ HemisphereLight
+      scene.add(light); //add แสงเข้า scene
+    }
+
+    ////////////////////////// ---> ข้อกำหนดบังคับ ---> ใช้ Direcrional light ////////////////////
+
+    {
+      const color = 0xFFFFFF; //แสงสีขาว
+      const intensity = 1; //ความเข้มแสง
+      const light = new THREE.DirectionalLight(color, intensity); //directional light
+      light.position.set(0, 150, -300); //ตำแหน่งแสง
+      scene.add(light); //add แสงเข้า scene
+    }
+
+    let fish; //สร้างตัวแปรปลา
+    let fin; //สร้างตัวคลีบปลา
+
+
+    /////////////////////////// ---> ข้อกำหนดบังคับเลือก ---> ใช้ evironemnt map ////////////
+
+
+    { 
+      const loader = new THREE.TextureLoader();
+      const texture = loader.load(
+        'model/skyrender.png',
+        () => {
+          const rt = new THREE.WebGLCubeRenderTarget(texture.image.height);
+          rt.fromEquirectangularTexture(renderer, texture);
+          scene.background = rt.texture;
+        });
+    }
+
+
+    //////////////////////---> ข้อกำหนดบังคับ ---> ใช้ glft อย่างน้อย 1 โมเดล ///////////////////////
+    //////////////////////---> ข้อกำหนดบังคับเลือก ---> สร้าง object จาก Blender ///////////////////////
+    
+    
+    { //เพิ่มโมเดลปลา
+      const ob = new GLTFLoader();
+      ob.load('model/goldfish.gltf', (gltf) => {
+        const root = gltf.scene;
+        scene.add(root);
+        fish = root.getObjectByName('scene');
+        fin = root.getObjectByName('fin');
+      })
+    }
+    let neemo_1 //สร้างตัวแปรนีโม
+    { //เพิ่มโมเดลนีโม
+      const neemo1 = new GLTFLoader();
+      neemo1.load('model/neemo.gltf', (gltf) => {
+        const neemoModel1 = gltf.scene;
+        scene.add(neemoModel1);
+        neemo_1 = neemoModel1.getObjectByName('scene');
+      })
+    }
+    let squid_1; //สร้างตัวแปรหมึก
+    { //เพิ่มโมเดลหมึก
+      const squid1 = new GLTFLoader();
+      squid1.load('model/squid.gltf', (gltf) => {
+        const squidModel1 = gltf.scene;
+        scene.add(squidModel1);
+        squid_1 = squidModel1.getObjectByName('scene');
+      })
+    }
+    let stingray_1; //สร้างตัวแปรกะเบน
+    { //เพิ่มปลารกะเบน
+      const stingray1 = new GLTFLoader();
+      stingray1.load('model/stingray.gltf', (gltf) => {
+        const stingrayModel1 = gltf.scene;
+        scene.add(stingrayModel1);
+        stingray_1 = stingrayModel1.getObjectByName('scene');
+      })
+    }
+    let turtle_1; //สร้างตัวแปรเต่า
+    { //เพิ่มโมเดลเต่า
+      const turtle1 = new GLTFLoader();
+      turtle1.load('model/Turtle.gltf', (gltf) => {
+        const turtleModel1 = gltf.scene;
+        scene.add(turtleModel1);
+        turtle_1 = turtleModel1.getObjectByName('scene');
+      })
+    }
+
+    let worlds; //สร้างตัวแปรโลก
+    { //เพิ่มโลก
+      const world = new GLTFLoader();
+      world.load('model/sekai4.gltf', (gltf) => {
+        const worldModel = gltf.scene;
+        world.name = "worldModel";
+        worlds = worldModel.getObjectByName('scene');
+        scene.add(worldModel);
+      })
+    }
+    let seaWeed_1; //สร้างตัวแปรสาหร่าย
+    let seaWeed_2;
+    let seaWeed_3;
+    let seaWeed_4;
+    let seaWeed_5;
+    let seaWeed_6;
+    let seaWeed_7;
+    let seaWeed_8;
+
+    { //เพิ่มโมเดลสาหร่าย
+      const seaWeed1 = new GLTFLoader();
+      seaWeed1.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel1 = gltf.scene;
+        scene.add(seaWeedModel1);
+        seaWeed_1 = seaWeedModel1.getObjectByName('scene');
+      })
+    }
+    {
+      const seaWeed2 = new GLTFLoader();
+      seaWeed2.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel2 = gltf.scene;
+        scene.add(seaWeedModel2);
+        seaWeed_2 = seaWeedModel2.getObjectByName('scene');
+      })
+    }
+    {
+      const seaWeed3 = new GLTFLoader();
+      seaWeed3.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel3 = gltf.scene;
+        scene.add(seaWeedModel3);
+        seaWeed_3 = seaWeedModel3.getObjectByName('scene');
+      })
+    }
+    {
+      const seaWeed4 = new GLTFLoader();
+      seaWeed4.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel4 = gltf.scene;
+        scene.add(seaWeedModel4);
+        seaWeed_4 = seaWeedModel4.getObjectByName('scene');
+      })
+    }
+    {
+      const seaWeed5 = new GLTFLoader();
+      seaWeed5.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel5 = gltf.scene;
+        scene.add(seaWeedModel5);
+        seaWeed_5 = seaWeedModel5.getObjectByName('scene');
+      })
+    }
+    {
+      const seaWeed6 = new GLTFLoader();
+      seaWeed6.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel6 = gltf.scene;
+        scene.add(seaWeedModel6);
+        seaWeed_6 = seaWeedModel6.getObjectByName('scene');
+      })
+    }
+    {
+      const seaWeed7 = new GLTFLoader();
+      seaWeed7.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel7 = gltf.scene;
+        scene.add(seaWeedModel7);
+        seaWeed_7 = seaWeedModel7.getObjectByName('scene');
+      })
+    }
+    {
+      const seaWeed8 = new GLTFLoader();
+      seaWeed8.load('model/seaWeed4.gltf', (gltf) => {
+        const seaWeedModel8 = gltf.scene;
+        scene.add(seaWeedModel8);
+        seaWeed_8 = seaWeedModel8.getObjectByName('scene');
+      })
+    }
+    let seaPlant_1;
+    let seaPlant_2;
+    {
+      const seaPlant1 = new GLTFLoader();
+      seaPlant1.load('model/seaplant.gltf', (gltf) => {
+        const seaPlantModel1 = gltf.scene;
+        scene.add(seaPlantModel1);
+        seaPlant_1 = seaPlantModel1.getObjectByName('scene');
+      })
+    }
+    {
+      const seaPlant2 = new GLTFLoader();
+      seaPlant2.load('model/seaplant.gltf', (gltf) => {
+        const seaPlantModel2 = gltf.scene;
+        scene.add(seaPlantModel2);
+        seaPlant_2 = seaPlantModel2.getObjectByName('scene');
+      })
+    }
+
+    {
+      const foodLoader = new GLTFLoader();
+      foodLoader.load('model/food.gltf', (gltf) => {
+        const foodModel = gltf.scene;
+        foodModel.traverse(child => {
+          if (child.isMesh) {
+            ///////// ---> ข้อกำหนดบังคับ ---> ใช้ Phong อย่างน้อย 1 ชิ้น
+            child.material = new THREE.MeshPhongMaterial({
+              color: 0xffaa00, //อาหารสีส้ม
+              shininess: 1000,
+              specular: 0xffffff, //สะท้อนสีขาว
+            });
+          }
+        });
+        foodModel.name = "foodModel";
+        for (let i = 0; i < 150; i++) {
+          const foodInstance = foodModel.clone();
+          const randomX = Math.random() * (288 - (-262)) + (-262);
+          const randomY = Math.random() * (128 - (-12)) + (-12);
+          foodInstance.position.set(randomX, randomY, -15);
+          scene.add(foodInstance);
+        }
+      });
+    }
+
+    let mousePos = { x: 0, y: 0 }; //สร้างตัวแปรไว้เก็บตำแหน่งเมาส์ x y เริ่มที่ 0
+
+    function handleMouseMove(event) { //ฟังชันเลื่อนตำแหน่งเมาส์
+      var tx = (event.clientX / WIDTH) * 2 - 1;
+      var ty = -(event.clientY / HEIGHT) * 2 + 1;
+
+      mousePos = { x: tx, y: ty }; //อัพเดตค่าที่ได้
+
+    }
+
+    document.addEventListener('mousemove', handleMouseMove, false); //event listebner mousemove
+
+
+    function resizeRendererToDisplaySize(renderer) { //
+      const canvas = renderer.domElement;
+      const width = canvas.clientWidth;
+      const height = canvas.clientHeight;
+      const needResize = canvas.width !== width || canvas.height !== height;
+      if (needResize) {
+        renderer.setSize(width, height, false);
+      }
+      return needResize;
+    }
+
+
+    function checkCollision(object1, object2) { //ฟังชันตรวจการชน
+      if (object1 && object2) {
+        const box1 = new THREE.Box3().setFromObject(object1); //สร้างกล่องเพื่อคลุม obj
+        const box2 = new THREE.Box3().setFromObject(object2);
+
+        return box1.intersectsBox(box2); //เช็คว่า obj ทั้งสองชนกันหรือเปล่า
+      } else {
+        return false;
+      }
+    }
+
+
+    function render(time) {
+      time *= 0.001;
+
+      if (resizeRendererToDisplaySize(renderer)) {
+        const canvas = renderer.domElement;
+        camera.aspect = canvas.clientWidth / canvas.clientHeight;
+        camera.updateProjectionMatrix();
+      }
+
+      if (fish) {
+        const minY = -12;
+        const maxY = 128;
+        const minX = -262;
+        const maxX = 288;
+
+        fish.position.y = THREE.MathUtils.clamp(fish.position.y, minY, maxY); //กำหนดกราบที่ปลาสามารถเคลื่อนทราได้
+        fish.position.x = THREE.MathUtils.clamp(fish.position.x, minX, maxX);
+
+        fish.position.z = -15; //กำหนดตำแหน่ง z
+
+        if (mousePos.x >= 0) { //ทำให้ปลาหันหัวตามเมาส์ในระนาบแกน x
+          fish.rotation.y = 0;
+        }
+        if (mousePos.x < 0) {
+          fish.rotation.y = 60;
+        }
+
+        fish.position.x += (mousePos.x * 10) * 0.05; //อัพเดตตำแหน่งของปลา
+        fish.position.y += (mousePos.y * 10) * 0.05;
+        fin.position.x = 0.1 * Math.sin(3 * time); // ทำให้หางและคลีบขยับ
+        fin.position.y = 0.1 * Math.cos(5 * time);
+
+        camera.position.x += (fish.position.x - camera.position.x) * 0.1; //อัพเดตตำแหน่งกล้องตามตัวปลา
+        camera.position.y += (fish.position.y - camera.position.y) * 0.1;
+
+        if (checkCollision(fish, turtle_1)) {
+          //หากปลาชนเต่าทะเล จะทำการขึ้นข้อความว่า You lose และรอประมาณ 4 วินาทีในการเริ่มเกมใหม่
+          document.body.innerHTML = '<div class="message message--youLose">You Lose</div>';
+          setTimeout(() => {
+            location.reload();
+          }, 4000);
+        }
+        if (checkCollision(fish, neemo_1)) {
+          //หากปลาชนปลานี่โม่ จะทำการขึ้นข้อความว่า You lose และรอประมาณ 4 วินาทีในการเริ่มเกมใหม่
+          document.body.innerHTML = '<div class="message message--youLose">You Lose</div>';
+          setTimeout(() => {
+            location.reload();
+          }, 4000);
+        }
+        if (checkCollision(fish, squid_1)) {
+          //หากปลาชนปลาหมึก จะทำการขึ้นข้อความว่า You lose และรอประมาณ 4 วินาทีในการเริ่มเกมใหม่
+          document.body.innerHTML = '<div class="message message--youLose">You Lose</div>';
+          setTimeout(() => {
+            location.reload();
+          }, 4000);
+        }
+        if (checkCollision(fish, stingray_1)) {
+          //หากปลาชนแมงดาทะเล จะทำการขึ้นข้อความว่า You lose และรอประมาณ 4 วินาทีในการเริ่มเกมใหม่
+          document.body.innerHTML = '<div class="message message--youLose">You Lose</div>';
+          setTimeout(() => {
+            location.reload();
+          }, 4000);
+        }
+
+        const foods = scene.children.filter(child => child.name === "foodModel"); // หาว่าอาหารอยู่ที่ไหนใน scene
+        foods.forEach(food => {
+          if (checkCollision(fish, food)) { // เช็คชนกันระหว่างปลาและอาหาร
+            scene.remove(food); // ถ้าชนกัน ก็ลบอาหารทิ้ง
+            eatenFoodCount++; // เพิ่มจำนวนอาหารที่ปลากินได้
+            document.getElementById("food").innerText = eatenFoodCount.toString().padStart(3, '0'); // อัปเดตค่าใน <div>
+            eatingSound.play();
+
+            //หากscore มากกว่า 30 แล้ว ให้ขึ้นข้อความว่า You win และรอ 4 วินาที เพื่อเริ่มเกมใหม่ 
+            if (eatenFoodCount >= 30) {
+              document.body.innerHTML = '<div class="message message--youWin">You Win</div>';
+              setTimeout(() => {
+                location.reload();
+              }, 4000);
+            }
+          }
+        });
+
+      }
+      if (neemo_1) {
+        neemo_1.scale.set(1.5, 1.5, 1.5);
+
+        //กำหนดทิศทางการหันหัวของปลานีโม่สำหรับการเคลื่อนที่
+        if (neemo_1.position.x < neemo_1.position.x + 0.3 * Math.sin(0.3 * time)) {
+          neemo_1.rotation.y = 0;
+        }
+        if (neemo_1.position.x > neemo_1.position.x + 0.3 * Math.sin(0.3 * time)) {
+          neemo_1.rotation.y = 60;
+        }
+
+        neemo_1.position.x += 0.3 * Math.sin(0.3 * time); //อัพเดทตำแหน่งของปลานี่โม่ในแนวแกน x
+        neemo_1.position.y = 30; //กำหนดตำแหน่งปลานีโม่ในแนวแกน y
+        neemo_1.position.z = -15; //กำหนดตำแหน่งปลานีโม่ในแนวแกน z
+      }
+      if (squid_1) {
+        squid_1.scale.set(3, 3, 3);
+
+        //กำหนดทิศทางการหันหัวของปลาหมึกสำหรับการเคลื่อนที่
+        if (squid_1.position.x < squid_1.position.x + 0.25 * Math.sin(0.25 * -time)) {
+          squid_1.rotation.y = 0;
+        }
+        if (squid_1.position.x > squid_1.position.x + 0.25 * Math.sin(0.25 * -time)) {
+          squid_1.rotation.y = 60;
+        }
+
+        squid_1.position.x += 0.25 * Math.sin(0.25 * -time); //อัพเดทตำแหน่งของปลาหมึกในแนวแกน x
+        squid_1.position.y = 60; //กำหนดตำแหน่งปลาหมึกในแนวแกน y
+        squid_1.position.z = -15; //กำหนดตำแหน่งปลาหมึกในแนวแกน z
+
+      }
+      if (stingray_1) {
+        stingray_1.scale.set(4, 4, 4);
+
+        //กำหนดทิศทางการหันหัวของแมงดาทะเลสำหรับการเคลื่อนที่
+        if (stingray_1.position.x < stingray_1.position.x + 0.8 * Math.sin(0.5 * time)) {
+          stingray_1.rotation.y = 0;
+        }
+        if (stingray_1.position.x > stingray_1.position.x + 0.8 * Math.sin(0.5 * time)) {
+          stingray_1.rotation.y = 60;
+        }
+
+        stingray_1.position.x += 0.8 * Math.sin(0.5 * time); //อัพเดทตำแหน่งของแมงดาทะเลในแนวแกน x
+        stingray_1.position.y = 70; //กำหนดตำแหน่งแมงดาทะเลในแนวแกน y
+        stingray_1.position.z = -15; //กำหนดตำแหน่งแมงดาทะเลในแนวแกน z
+      }
+
+
+      if (worlds) {
+        worlds.position.y = 60;
+        worlds.position.z = -60;
+      }
+
+      if (turtle_1) {
+        turtle_1.scale.set(2, 2, 2);
+
+        //กำหนดทิศทางการหันหัวของเต่าทะเลสำหรับการเคลื่อนที่
+        if (turtle_1.position.x < turtle_1.position.x + 0.25 * Math.sin(0.5 * -time)) {
+          turtle_1.rotation.y = 0;
+        }
+
+        if (turtle_1.position.x > turtle_1.position.x + 0.25 * Math.sin(0.5 * -time)) {
+          turtle_1.rotation.y = 60;
+        }
+
+        turtle_1.position.x += 0.25 * Math.sin(0.5 * -time); //อัพเดทตำแหน่งของเต่าทะเลในแนวแกน x
+        turtle_1.position.y = -10; //กำหนดตำแหน่งเต่าทะเลในแนวแกน y
+        turtle_1.position.z = -15; //กำหนดตำแหน่งเต่าทะเลในแนวแกน z
+      }
+
+      if (seaWeed_1) {
+        seaWeed_1.position.x = 0;
+        seaWeed_1.position.y = -15;
+      }
+      if (seaWeed_2) {
+        seaWeed_2.position.x = 30;
+        seaWeed_2.position.y = -15;
+        seaWeed_2.position.z = -30;
+      }
+      if (seaWeed_3) {
+        seaWeed_3.position.x = -60;
+        seaWeed_3.position.y = -15;
+        seaWeed_3.position.z = -30;
+      }
+      if (seaWeed_4) {
+        seaWeed_4.position.x = -140;
+        seaWeed_4.position.y = -15;
+        seaWeed_4.position.z = -30;
+
+        seaWeed_4.rotation.y = Math.PI;
+      }
+      if (seaWeed_5) {
+        seaWeed_5.position.x = 140;
+        seaWeed_5.position.y = -15;
+        seaWeed_5.position.z = -30;
+
+        seaWeed_5.rotation.y = Math.PI / 4;
+      }
+      if (seaWeed_6) {
+        seaWeed_6.position.x = 240;
+        seaWeed_6.position.y = -15;
+        seaWeed_6.position.z = -30;
+      }
+      if (seaWeed_7) {
+        seaWeed_7.position.x = -180;
+        seaWeed_7.position.y = -15;
+      }
+      if (seaWeed_8) {
+        seaWeed_8.position.x = 140;
+        seaWeed_8.position.y = -15;
+      }
+      if (seaPlant_1) {
+        seaPlant_1.scale.set(2, 2, 2,);
+        seaPlant_1.position.x = -20;
+        seaPlant_1.position.y = 20;
+        seaPlant_1.position.z = -50;
+      }
+      if (seaPlant_2) {
+        seaPlant_2.scale.set(2, 2, 2,);
+        seaPlant_2.position.x = 80;
+        seaPlant_2.position.y = 20;
+        seaPlant_2.position.z = -40;
+      }
+
+
+
+      renderer.render(scene, camera);
+
+      requestAnimationFrame(render);
+    }
+
+    requestAnimationFrame(render);
+  }
+
+  main();
+
+
+
+</script>
+
+</html>

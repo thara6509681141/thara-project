@@ -1,3 +1,5 @@
+# restaurant-pos
+
 ## Overview
 This project is a **web-based Point of Sale (POS) system** designed for restaurant management. Built with **Spring Boot** for the backend and **MySQL** as the database, this system helps streamline ordering, inventory management, and sales tracking. It includes a user interface for restaurant employees to place orders and track sales, as well as admin features for managing menu items and employee profiles.
 
@@ -44,15 +46,118 @@ This project is a **web-based Point of Sale (POS) system** designed for restaura
 1. **Create the MySQL Database**:
    Open your MySQL CLI or Workbench, then create a new database:
    ```sql
-   CREATE DATABASE cs251_pos;
+   CREATE DATABASE restaurant_database;
    ```
 
-2. **Configure the `application.properties`**:
+1. **Create all Tables**:
+   Open your MySQL CLI or Workbench, then create a new tables:
+   ```sql
+   CREATE TABLE Invoice (
+        InvoiceNo INT(10) PRIMARY KEY AUTO_INCREMENT,
+        Payment DOUBLE(10,2) NOT NULL,
+        PaymentMethod VARCHAR(255) NOT NULL,
+        DateTime DATETIME NOT NULL,
+        TotalDiscount DOUBLE(10,2),
+        NetPrice DOUBLE(10,2) NOT NULL,
+        IsTakeHome BIT(1) NOT NULL,
+        MemberID VARCHAR(10),
+        i_change DOUBLE(10,2) NOT NULL
+    );
+
+    CREATE TABLE Member ( 
+        m_id VARCHAR(10) PRIMARY KEY,
+        m_password VARCHAR(255) NOT NULL,
+        m_rank INT(10) NOT NULL,
+        m_citizenId VARCHAR(13) UNIQUE NOT NULL,
+        m_name VARCHAR(255) NOT NULL,
+        m_points INT(10) NOT NULL,
+        m_enroll DATETIME NOT NULL,
+        m_birthdate DATE NOT NULL
+    );
+
+    CREATE TABLE Member_tel (
+        m_id VARCHAR(10),
+        m_tel VARCHAR(10),
+        PRIMARY KEY (m_tel),
+        FOREIGN KEY (m_id) REFERENCES Member(m_id)
+    );
+
+    CREATE TABLE InvoiceHaveMember (
+        InvoiceNo INT(10),
+        m_id VARCHAR(10),
+        FOREIGN KEY (InvoiceNo) REFERENCES Invoice(InvoiceNo),
+        FOREIGN KEY (m_id) REFERENCES Member(m_id)
+    );
+
+    CREATE TABLE Menu (
+        unit VARCHAR(255) NOT NULL,
+        foodname VARCHAR(255) PRIMARY KEY,
+        amount INT(10) NOT NULL,
+        price DOUBLE(5,2) NOT NULL
+    );
+
+    CREATE TABLE Promotion (
+        Promotion_Name VARCHAR(255) NOT NULL,
+        Promotion_Price DOUBLE(5,2) NOT NULL,
+        Promotion_Code VARCHAR(20) PRIMARY KEY,
+        Promotion_Expire DATETIME NOT NULL
+    );
+
+    CREATE TABLE OrderMenu (
+        InvoiceNo INT(10),
+        foodname VARCHAR(255),
+        m_amount INT(10),
+        FOREIGN KEY (InvoiceNo) REFERENCES Invoice(InvoiceNo),
+        FOREIGN KEY (foodname) REFERENCES Menu(foodname)
+    );
+    CREATE TABLE OrderPromotion (
+        InvoiceNo INT(10),
+        Promotion_Code VARCHAR(20),
+        p_amount INT(10),
+        FOREIGN KEY (InvoiceNo) REFERENCES Invoice(InvoiceNo),
+        FOREIGN KEY (Promotion_Code) REFERENCES Promotion(Promotion_Code)
+    );
+
+    CREATE TABLE MenuHavePromotion (
+        foodname VARCHAR(255),
+        Promotion_Code VARCHAR(20),
+        Amount INT(10),
+        FOREIGN KEY (foodname) REFERENCES Menu(foodname),
+        FOREIGN KEY (Promotion_Code) REFERENCES Promotion(Promotion_Code)
+    );
+
+    CREATE TABLE Seller (
+        s_workid VARCHAR(10) PRIMARY KEY,
+        s_name VARCHAR(255) NOT NULL,
+        s_password VARCHAR(255) NOT NULL,
+        s_citizenID VARCHAR(13) NOT NULL UNIQUE,
+        s_address TEXT NOT NULL,
+        s_startDate DATETIME NOT NULL
+    );
+
+    CREATE TABLE Seller_tel (
+        s_workid VARCHAR(10),
+        s_tel VARCHAR(10),
+        PRIMARY KEY (s_tel),
+        FOREIGN KEY (s_workid) REFERENCES Seller(s_workid)
+    );
+
+    CREATE TABLE Checkin (
+        s_workid VARCHAR(10),
+        Date DATE,
+        TimeIn TIME,
+        TimeOut TIME,
+        PRIMARY KEY (s_workid, Date),
+        FOREIGN KEY (s_workid) REFERENCES Seller(s_workid)
+    );
+   ```
+
+3. **Configure the `application.properties`**:
    Update `application.properties` in `src/main/resources/` with your database credentials and configuration:
 
    ```properties
    ## Spring DATASOURCE (DataSourceAutoConfiguration & DataSourceProperties)
-   spring.datasource.url = jdbc:mysql://localhost:3306/cs251_pos
+   spring.datasource.url = jdbc:mysql://localhost:3306/restaurant_database
    spring.datasource.username = root
    spring.datasource.password = your_password_here
 

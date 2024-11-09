@@ -48,6 +48,16 @@ This project is open-source and available under the MIT License.
 - **Three.js** for providing the tools to create 3D graphics in the browser.
 - **Blender** for creating the 3D models.
 
+## Team Member
+- **ธารา ศรีธราดล** - Project Lead, Developer, 3D Modeler
+    - Role : Responsible for leading the project, coding the game logic, and creating 3D models in Blender.
+- **ธมกร สมานสวน** -  Concept Creator, Game Tester, 3D Modeler
+    - Role : Responsible for conceptualizing the game idea, designing game mechanics, testing the game for bugs, and creating 3D models and assets used in the game (such as fish, food, and environment objects) using Blender.
+- **ทีฆกานต์ จานเขื่อง** - Project Advisor, Game Optimization
+    - Role : Provided project guidance, consulted on technical aspects, and assisted in optimizing game performance for better gameplay experience. Also contributed to creating some 3D models used in the game.
+- **ลีนา หมาดหมาน** - 3D Modeler
+    - Role : Responsible for creating and sculpting 3D models used in the game, including objects such as fish, food, and environment elements, using Blender.
+
 ## Screenshots
 ![Screenshot](assets/images/fish-eat-game-screenshot/Screenshot_1.png)
 

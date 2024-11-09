@@ -49,5 +49,5 @@ This project is open-source and available under the MIT License.
 - **Blender** for creating the 3D models.
 
 ## Screenshots
-![Screenshot](fish-eat-game/assets/images/fish-eat-game-screenshot/Screenshot_1.png)
+![Screenshot](assets/images/fish-eat-game-screenshot/Screenshot_1.png)
 

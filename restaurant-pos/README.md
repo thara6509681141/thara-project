@@ -171,7 +171,7 @@ This project is a **web-based Point of Sale (POS) system** designed for restaura
 ### Running the Application
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/thara6509681141/thara-project/tree/main
+   git clone https://github.com/thara6509681141/thara-project
    cd restaurant-pos
    ```
 
